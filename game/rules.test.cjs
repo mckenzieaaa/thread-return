@@ -1,0 +1,21 @@
+const assert=require('node:assert/strict');
+const R=require('./rules.js');
+const fresh=R.initial();
+const path=R.plan(fresh);
+assert(path&&path.length<=10,'The level must be solvable within its budget.');
+let s=fresh;
+for(const to of path){const r=R.move(s,to);assert(r.ok);s=r.state;assert(s.steps>=0&&s.buttons>=0);}
+assert(R.canFinish(s));
+const result=R.finish(s);assert(result.ok&&result.state.done);assert(R.stars(result.state)>=1);
+assert.deepEqual(fresh,R.initial(),'Planning and moves must not mutate prior snapshots used by undo.');
+assert.equal(R.move(fresh,'G').ok,false,'Nonadjacent movement must be rejected.');
+assert.equal(R.finish(fresh).ok,false,'Early finish must be rejected.');
+let supply=R.move(fresh,'B').state;
+assert.equal(supply.buttons,4);
+supply=R.move(supply,'A').state;supply=R.move(supply,'B').state;
+assert.equal(supply.buttons,4,'Supplies cannot be farmed by revisiting.');
+assert.equal(R.move({...fresh,pos:'L',buttons:1},'M').ok,false,'A shortcut must charge its full button cost.');
+assert(R.failed({...fresh,steps:0}));
+assert(R.canFinish({...s,steps:0})&&!R.failed({...s,steps:0}),'Finishing on the last step must remain possible.');
+assert.equal(R.move(result.state,'F').ok,false,'A completed board must not allow further moves.');
+console.log('Board rules passed: solvability, immutable snapshots, movement, resource accounting, single-use rewards and finish boundaries.');
