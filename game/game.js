@@ -23,7 +23,7 @@ function animate(from,to){return new Promise(resolve=>{const e=R.edge(from,to),p
 $('#undo').onclick=()=>{if(!history.length||busy||rolling)return;({state,yarns,stitches,rolled}=history.pop());if($('#result').open)$('#result').close();setView('line');document.documentElement.style.setProperty('--thread',colors[rolled??5][1]);drawDie(rolled??5);render();msg('已撤回，保留当时骰色，可以换条路线。')};
 function restart(){if(busy||rolling)return;state=R.initial();history=[];yarns=[0,5,8,2];stitches=[];rolled=null;$('#result').close();setView('line');render();msg('掷彩骰，开始新一片布。')}
 $('#restart').onclick=restart;$('#result-restart').onclick=restart;$('#result-back').onclick=()=>{$('#result').close();setView('color')};$('#result-cloth').onclick=()=>{$('#result').close();setView('cloth')};$('#hint').onclick=()=>{const p=R.plan(state);if(!p){msg('目前走法难以完成，试试撤回。');return}msg(p.length?'可以先去'+R.byId[p[0]].name+'。'+(rolled===null?'先掷彩骰。':'点击棋盘上的该位置。'):'目标已齐，到终点合纹。')};
-function result(win){$('#result-title').textContent=win?'三纹齐聚，彩线成布':'行动用完了';$('#result-detail').textContent=win?'用 '+(10-state.steps)+' 步完成了这片布。看看彩线经过的纹样吧。':'还缺：'+missingGoal().join('、')+'。撤回几步，重新安排路线。';$('#result-stars').textContent=win?'✦'.repeat(R.stars(state)):'';$('#result-back').textContent=win?'回看色稿':'回到棋盘';$('#result-back').onclick=()=>{$('#result').close();setView(win?'color':'line')};$('#result').showModal()}
+function result(win,showAnimation=true){if(win&&showAnimation){playFinale();return}$('#result-title').textContent=win?'三纹齐聚，彩线成布':'行动用完了';$('#result-detail').textContent=win?'用 '+(10-state.steps)+' 步完成了这片布。看看彩线经过的纹样吧。':'还缺：'+missingGoal().join('、')+'。撤回几步，重新安排路线。';$('#result-stars').textContent=win?'✦'.repeat(R.stars(state)):'';$('#result-back').textContent=win?'回看色稿':'回到棋盘';$('#result-back').onclick=()=>{$('#result').close();setView(win?'color':'line')};$('#result-animation').hidden=!win;$('#result').showModal()}
 function setView(mode){view=mode;$('#board').dataset.view=mode;document.querySelectorAll('[data-view]').forEach(b=>{b.classList.toggle('active',b.dataset.view===mode);b.setAttribute('aria-pressed',String(b.dataset.view===mode))})}
 $('#fullscreen').onclick=async()=>{try{if(document.fullscreenElement){await document.exitFullscreen();return}await document.documentElement.requestFullscreen();try{await screen.orientation.lock('landscape')}catch{}}catch{msg('请横过手机使用；也可以将网页添加到主屏幕。')}};
 document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));settleGoal();makeBoard();setView(state.done?'color':'line');document.documentElement.style.setProperty('--thread',colors[rolled??5][1]);render();
@@ -31,3 +31,6 @@ document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.data
 drawDie(rolled??5);
 
 if(state.done)result(true);else if(state.pos==='G')msg('已到终点，还缺：'+missingGoal().join('、')+'。可继续走线或撤回。');
+
+function playFinale(){if($('#result').open)$('#result').close();window.ThreadFinale.play({stitches:stitches.map(s=>({...s})),colors,edges:R.edges,nodes:R.byId,onClose:()=>result(true,false),onOriginal:()=>{setView('cloth');msg('这是原布料对照。点击任意节点可重看本局成布动画。')}})}
+$('#result-animation').onclick=playFinale;
