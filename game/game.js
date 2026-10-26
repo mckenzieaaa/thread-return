@@ -33,7 +33,7 @@ drawDie(rolled??5);
 
 if(state.done)result(true);else if(state.pos==='G')msg('已到终点，还缺：'+missingGoal().join('、')+'。可继续走线或撤回。');
 
-function playFinale(){if($('#result').open)$('#result').close();window.ThreadFinale.play({stitches:stitches.map(s=>({...s})),colors,edges:R.edges,nodes:R.byId,data:level.finale,atlas:level.atlas,onClose:()=>result(true,false),onOriginal:()=>{setView('cloth');msg('这是原布料对照。点击任意节点可重看本局成布动画。')}})}
+function playFinale(){if($('#result').open)$('#result').close();window.ThreadFinale.play({stitches:stitches.map(s=>({...s})),colors,edges:R.edges,nodes:R.byId,data:level.finale,atlas:level.atlas,referenceColor:level.fullColor||$('#color-view').getAttribute('href'),onClose:()=>result(true,false),onOriginal:()=>{setView('cloth');msg('这是原布料对照。点击任意节点可重看本局成布动画。')}})}
 $('#result-animation').onclick=playFinale;
 
 function markComplete(){try{localStorage.setItem('thread-return-complete-'+levelId,'1')}catch{}}
