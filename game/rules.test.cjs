@@ -11,11 +11,19 @@ assert.deepEqual(fresh,R.initial(),'Planning and moves must not mutate prior sna
 assert.equal(R.move(fresh,'G').ok,false,'Nonadjacent movement must be rejected.');
 assert.equal(R.finish(fresh).ok,false,'Early finish must be rejected.');
 let supply=R.move(fresh,'B').state;
-assert.equal(supply.buttons,4);
+assert.equal(supply.buttons,6);
 supply=R.move(supply,'A').state;supply=R.move(supply,'B').state;
-assert.equal(supply.buttons,4,'Supplies cannot be farmed by revisiting.');
+assert.equal(supply.buttons,6,'Supplies cannot be farmed by revisiting.');
 assert.equal(R.move({...fresh,pos:'L',buttons:1},'M').ok,false,'A shortcut must charge its full button cost.');
 assert(R.failed({...fresh,steps:0}));
 assert(R.canFinish({...s,steps:0})&&!R.failed({...s,steps:0}),'Finishing on the last step must remain possible.');
 assert.equal(R.move(result.state,'F').ok,false,'A completed board must not allow further moves.');
 console.log('Board rules passed: solvability, immutable snapshots, movement, resource accounting, single-use rewards and finish boundaries.');
+
+for(const e of R.edges){
+ const coords=e.d.match(/-?\d+(?:\.\d+)?/g).map(Number),a=R.byId[e.a],b=R.byId[e.b];
+ assert(Math.hypot(coords[0]-a.x,coords[1]-a.y)<.2);
+ assert(Math.hypot(coords.at(-2)-b.x,coords.at(-1)-b.y)<.2);
+}
+assert(R.edges.filter(e=>!e.bridge).length>R.edges.filter(e=>e.bridge).length);
+console.log('Pattern-route endpoints match their nodes; most routes follow original contours.');
